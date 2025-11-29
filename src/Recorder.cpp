@@ -1,6 +1,10 @@
 // TODO: Imply interfaces declared in the Recorder.hpp.
 #include "Recorder.hpp"
 
+Recorder::~Recorder() {
+    clear(); 
+}
+
 // 插入语句
 void Recorder::add(int line, Statement* stmt) {
   // 若已存在先删旧的
