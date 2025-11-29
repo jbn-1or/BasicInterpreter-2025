@@ -66,7 +66,21 @@ void Program::list() const {
         }
         const Statement* stmt = recorder_.get(nextLine);
         if (stmt) {
-            std::cout << nextLine << " " << stmt->text() << std::endl;
+            // 提取 stmt->text() 中除去行号前缀的纯语句内容
+            std::string text = stmt->text();
+            // 找到第一个非数字字符的位置（跳过行号）
+            size_t firstNonDigit = text.find_first_not_of("0123456789");
+            if (firstNonDigit != std::string::npos) {
+                // 跳过行号后的空格
+                size_t firstNonSpace = text.find_first_not_of(" \t", firstNonDigit);
+                if (firstNonSpace != std::string::npos) {
+                    text = text.substr(firstNonSpace); // 截取纯语句内容
+                } else {
+                    text = ""; // 若行号后只有空格，则视为空语句
+                }
+            }
+            // 输出：行号 + 空格 + 纯语句内容
+            std::cout << nextLine << " " << text << std::endl;
         }
         currentLine = nextLine;
     }
