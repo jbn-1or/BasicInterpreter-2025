@@ -47,8 +47,17 @@ void LetStatement::execute(VarState& state, Program& program) const {
 }
 
 void PrintStatement::execute(VarState& state, Program& program) const {
-    int value = assignexpr->evaluate(state);
-    std::cout << value << std::endl;
+    try {
+        int value = assignexpr->evaluate(state);
+        std::cout << value << std::endl;
+    } catch (const BasicError& e) {
+        // 捕获变量未定义的错误，输出指定信息
+        if (e.what() == std::string("VARIABLE NOT DEFINED")) {
+            std::cout << "VARIABLE NOT DEFINED" << std::endl;
+        } else {
+            throw; // 其他错误继续抛出
+        }
+    }
 }
 
 void InputStatement::execute(VarState& state, Program& program) const {
@@ -99,6 +108,9 @@ void InputStatement::execute(VarState& state, Program& program) const {
 }
 
 void GotoStatement::execute(VarState& state, Program& program) const {
+    if (!program.hasLine(target_line_)) {
+        throw BasicError("LINE NUMBER ERROR");
+    }
     program.changePC(target_line_);
 }
 
@@ -122,6 +134,9 @@ void IfStatement::execute(VarState& state, Program& program) const {
     }
     
     if (condition) {
+        if (!program.hasLine(target_line_)) {
+            throw BasicError("LINE NUMBER ERROR");
+        }
         program.changePC(target_line_);
     }
 }

@@ -23,6 +23,9 @@ class Program {
   int getPC() const noexcept;
   void changePC(int line);
   void programEnd();
+  bool hasLine(int line) const {
+    return recorder_.hasLine(line);
+  }
 
  private:
   Recorder recorder_;
