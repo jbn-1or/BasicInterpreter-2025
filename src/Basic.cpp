@@ -65,7 +65,11 @@ int main() {
     if (trimmedLine == "QUIT") {
       break;
     } else if (trimmedLine == "RUN") {
-      program.run();
+      try {
+        program.run();
+      } catch (const BasicError& e) {
+        std::cout << e.message() << std::endl;
+      }
       continue;
     } else if (trimmedLine == "LIST") {
       program.list();
@@ -97,15 +101,15 @@ int main() {
       } else {
         // 立即执行语句：直接执行并释放内存
         if (stmt != nullptr) {
-        try {
+          try {
             program.execute(stmt);
-        } catch (const BasicError& e) {
+          } catch (const BasicError& e) {
             delete stmt;
             throw e;
+          }
+          delete stmt;
+          stmt = nullptr;
         }
-        delete stmt;
-        stmt = nullptr;
-    }
       }
     } catch (const BasicError& e) {
       std::cout << e.message() << "\n";
