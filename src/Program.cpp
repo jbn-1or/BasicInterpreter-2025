@@ -9,6 +9,7 @@
 Program::Program() : programCounter_(0), programEnd_(false) {}
 
 void Program::addStmt(int line, Statement* stmt) {
+    removeStmt(line);
     recorder_.add(line, stmt);
 }
 
@@ -17,39 +18,43 @@ void Program::removeStmt(int line) {
 }
 
 void Program::run() {
-    resetAfterRun();
-    // 获取第一个行号
+    resetAfterRun(); // 重置运行状态（PC、结束标志）
+    
+    // 获取最小行号（第一个行号）
     int firstLine = recorder_.nextLine(0);
     if (firstLine == -1) {
-        return;
+        return; // 无程序行时直接返回
     }
+    
+    // 从开头运行
     programCounter_ = firstLine;
     programEnd_ = false;
 
     while (!programEnd_) {
         const Statement* currentStmt = recorder_.get(programCounter_);
         if (!currentStmt) {
-            // 不存在有效语句
+            // 若当前行号不存在有效语句，终止运行
             programEnd_ = true;
             break;
         }
 
-        // 执行
+        // 执行当前语句
         currentStmt->execute(vars_, *this);
 
         if (programEnd_) {
             break;
         }
 
-        // 记录当前PC以判断是否修改
+        // 记录当前PC用于判断是否被修改（如GOTO/IF）
         int currentPC = programCounter_;
-        // 获取下一行号
+        // 获取下一行号（按行号升序）
         int nextLine = recorder_.nextLine(currentPC);
 
         if (nextLine == -1) {
+            // 无下一行时终止
             programEnd_ = true;
         } else if (programCounter_ == currentPC) {
-            // PC未被修改，下一行
+            // 若PC未被跳转语句修改，则自动进入下一行
             programCounter_ = nextLine;
         }
     }

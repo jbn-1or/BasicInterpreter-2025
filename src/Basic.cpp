@@ -63,7 +63,7 @@ int main() {
 
     // 优先处理解释器指令
     if (trimmedLine == "QUIT") {
-      break;  // 退出解释器
+      break;
     } else if (trimmedLine == "RUN") {
       program.run();
       continue;
@@ -77,24 +77,18 @@ int main() {
       printHelp();
       continue;
     }
-
     // 处理其他语句（带行号的语句和立即执行的LET/PRINT/INPUT）
     try {
-      // 1. 词法分析：将输入行转换为令牌流
       TokenStream tokens = lexer.tokenize(line);
       if (tokens.empty()) {
         continue;
       }
-
-      // 2. 语法分析：解析令牌流为 ParsedLine（包含行号和语句）
       ParsedLine parsedLine = parser.parseLine(tokens, line);
-
-      // 3. 处理解析结果
       auto lineNumber = parsedLine.getLine();
       Statement* stmt = parsedLine.fetchStatement();
 
       if (lineNumber.has_value()) {
-        // 带行号的语句：若语句为空，代表删除该行；否则添加/更新该行
+        // 带行号的语句：若语句为空，删除；否则添加更新
         if (stmt == nullptr) {
           program.removeStmt(lineNumber.value());
         } else {
@@ -103,14 +97,15 @@ int main() {
       } else {
         // 立即执行语句：直接执行并释放内存
         if (stmt != nullptr) {
-          // 局部 guard 对象，自动释放 stmt
-          struct StatementGuard {
-            Statement* ptr;
-            ~StatementGuard() { delete ptr; }
-          } guard{stmt};
-
-          program.execute(stmt);
+        try {
+            program.execute(stmt);
+        } catch (const BasicError& e) {
+            delete stmt;
+            throw e;
         }
+        delete stmt;
+        stmt = nullptr;
+    }
       }
     } catch (const BasicError& e) {
       std::cout << e.message() << "\n";
