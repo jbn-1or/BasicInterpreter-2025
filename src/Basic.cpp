@@ -9,7 +9,7 @@
 #include "Token.hpp"
 #include "utils/Error.hpp"
 
-// 辅助函数：去除字符串前后的空格
+// 辅助函数：去除前后的空格
 static std::string trim(const std::string& s) {
   auto start = s.begin();
   while (start != s.end() && std::isspace(static_cast<unsigned char>(*start))) {
@@ -81,7 +81,7 @@ int main() {
       printHelp();
       continue;
     }
-    // 处理其他语句（带行号的语句和立即执行的LET/PRINT/INPUT）
+    // 处理其他语句
     try {
       TokenStream tokens = lexer.tokenize(line);
       if (tokens.empty()) {
@@ -99,7 +99,6 @@ int main() {
           program.addStmt(lineNumber.value(), stmt);
         }
       } else {
-        // 立即执行语句：直接执行并释放内存
         if (stmt != nullptr) {
           try {
             program.execute(stmt);
