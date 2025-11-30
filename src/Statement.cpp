@@ -111,7 +111,9 @@ void GotoStatement::execute(VarState& state, Program& program) const {
     if (!program.hasLine(target_line_)) {
         throw BasicError("LINE NUMBER ERROR");
     }
-    program.changePC(target_line_);
+    else {
+        program.changePC(target_line_);
+    }
 }
 
 void IfStatement::execute(VarState& state, Program& program) const {

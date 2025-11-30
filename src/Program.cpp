@@ -17,6 +17,7 @@ void Program::removeStmt(int line) {
     recorder_.remove(line);
 }
 
+// 修改 src/Program.cpp 中的 run() 方法
 void Program::run() {
     resetAfterRun(); // 重置运行状态（PC、结束标志）
     
@@ -38,6 +39,9 @@ void Program::run() {
             break;
         }
 
+        // 记录当前PC用于判断是否被修改（如GOTO/IF）
+        int currentPC = programCounter_;
+
         // 执行当前语句
         currentStmt->execute(vars_, *this);
 
@@ -45,16 +49,18 @@ void Program::run() {
             break;
         }
 
-        // 记录当前PC用于判断是否被修改（如GOTO/IF）
-        int currentPC = programCounter_;
-        // 获取下一行号（按行号升序）
-        int nextLine = recorder_.nextLine(currentPC);
+        // 检查PC是否被跳转语句修改
+        if (programCounter_ != currentPC) {
+            // 如果PC被修改，直接进入下一次循环执行目标行
+            continue;
+        }
 
+        // PC未被修改，自动进入下一行
+        int nextLine = recorder_.nextLine(currentPC);
         if (nextLine == -1) {
             // 无下一行时终止
             programEnd_ = true;
-        } else if (programCounter_ == currentPC) {
-            // 若PC未被跳转语句修改，则自动进入下一行
+        } else {
             programCounter_ = nextLine;
         }
     }
